@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Suspicious Activity - Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    .box {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px auto;
+      max-width: 500px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    .box p {
+      margin: 5px 0;
+    }
+    .btn-group {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+    button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .block {
+      background: #e74c3c;
+      color: white;
+    }
+    .ignore {
+      background: #3498db;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h2>🚨 Suspicious Activity List</h2>
+  <div id="suspiciousContainer"></div>
+
+  <script>
+    const suspiciousList = JSON.parse(localStorage.getItem("suspicious_users")) || [];
+
+    function showList() {
+      const container = document.getElementById("suspiciousContainer");
+      container.innerHTML = "";
+
+      if (suspiciousList.length === 0) {
+        container.innerHTML = "<p style='text-align:center;'>No suspicious activity found.</p>";
+        return;
+      }
+
+      suspiciousList.forEach((entry, index) => {
+        const div = document.createElement("div");
+        div.className = "box";
+        div.innerHTML = `
+          <p><strong>📱 Mobile:</strong> ${entry.mobile}</p>
+          <p><strong>⚠ Reason:</strong> ${entry.reason}</p>
+          <div class="btn-group">
+            <button class="block" onclick="blockUser('${entry.mobile}', ${index})">🚫 Block</button>
+            <button class="ignore" onclick="ignoreUser(${index})">❌ Ignore</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function blockUser(mobile, index) {
+      const user = JSON.parse(localStorage.getItem("user_" + mobile));
+      if (user) {
+        user.status = "blocked";
+        localStorage.setItem("user_" + mobile, JSON.stringify(user));
+      }
+      suspiciousList.splice(index, 1);
+      localStorage.setItem("suspicious_users", JSON.stringify(suspiciousList));
+      alert("User blocked successfully.");
+      showList();
+    }
+
+    function ignoreUser(index) {
+      suspiciousList.splice(index, 1);
+      localStorage.setItem("suspicious_users", JSON.stringify(suspiciousList));
+      showList();
+    }
+
+    showList();
+  </script>
+</body>
+</html>

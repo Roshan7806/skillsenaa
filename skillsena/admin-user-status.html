@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Status Manager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    #searchInput {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .user-box {
+      background: white;
+      padding: 16px;
+      margin: 10px 0;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .user-info {
+      font-size: 16px;
+    }
+
+    .user-info span {
+      display: block;
+    }
+
+    .status {
+      font-weight: bold;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .btn-block {
+      background: #e74c3c;
+    }
+
+    .btn-unblock {
+      background: #2ecc71;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>User Status Manager</h2>
+
+  <!-- ✅ Search Box -->
+  <input type="text" id="searchInput" placeholder="Search by mobile number..." onkeyup="filterUsers()">
+
+  <!-- ✅ User List -->
+  <div id="userList"></div>
+
+  <script>
+    function loadUsers() {
+      const userList = document.getElementById("userList");
+      userList.innerHTML = "";
+
+      const allKeys = Object.keys(localStorage);
+      const users = allKeys.filter(k => k.startsWith("user_"));
+
+      users.forEach(key => {
+        const user = JSON.parse(localStorage.getItem(key));
+        const mobile = user.mobile || key.replace("user_", "");
+
+        const div = document.createElement("div");
+        div.className = "user-box";
+        div.setAttribute("data-mobile", mobile);
+
+        div.innerHTML = `
+          <div class="user-info">
+            <span><strong>Name:</strong> ${user.name}</span>
+            <span><strong>Mobile:</strong> ${mobile}</span>
+            <span class="status"><strong>Status:</strong> ${user.status === "blocked" ? "❌ Blocked" : "✅ Active"}</span>
+          </div>
+          <button class="btn ${user.status === 'blocked' ? 'btn-unblock' : 'btn-block'}" onclick="toggleStatus('${mobile}')">
+            ${user.status === 'blocked' ? 'Unblock' : 'Block'}
+          </button>
+        `;
+        userList.appendChild(div);
+      });
+    }
+
+    function toggleStatus(mobile) {
+      const user = JSON.parse(localStorage.getItem("user_" + mobile));
+      if (!user) return;
+
+      if (user.status === "blocked") {
+        delete user.status; // remove block
+      } else {
+        user.status = "blocked"; // block
+      }
+
+      localStorage.setItem("user_" + mobile, JSON.stringify(user));
+      loadUsers();
+    }
+
+    function filterUsers() {
+      const input = document.getElementById("searchInput").value.toLowerCase();
+      const users = document.querySelectorAll(".user-box");
+
+      users.forEach(user => {
+        const mobile = user.getAttribute("data-mobile").toLowerCase();
+        if (mobile.includes(input)) {
+          user.classList.remove("hidden");
+        } else {
+          user.classList.add("hidden");
+        }
+      });
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>
